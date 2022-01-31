@@ -1,11 +1,13 @@
-const fs= require('fs');
+//inport inquirer package from npm, import writefile/copyfile, generatepage from other js files
+const { writeFile, copyFile }= require('./utils/generate-site.js')
 const generatePage= require('./src/page-template.js');
-
 const inquirer= require('inquirer');
 
+//ask the user questions using command line
 const promptUser= () => {
     return inquirer.prompt
         ([
+            //name of person
             {
                 type: 'input',
                 name: 'name',
@@ -25,6 +27,7 @@ const promptUser= () => {
                     }
             },
             
+            //github username
             {
                 type: 'input',
                 name: 'github',
@@ -44,6 +47,7 @@ const promptUser= () => {
                     }
             },
 
+            //confirmation to add personal info
             {
                 type: 'confirm',
                 name: 'confirmAbout',
@@ -51,6 +55,7 @@ const promptUser= () => {
                 default: true
             },
             
+            //self description
             {
                 type: 'input',
                 name: 'about',
@@ -71,6 +76,7 @@ const promptUser= () => {
         ]);
     };
     
+//ask user about project info through command line     
 const promptProject= portfolioData => 
 {
     // If there's no 'projects' array property, create one
@@ -87,12 +93,14 @@ const promptProject= portfolioData =>
 
     return inquirer.prompt
     ([
+        //name of the project
         {
             type: 'input',
             name: 'name',
             message: 'What is the name of your project? (Required)',
             validate: projectNameInput => 
             {
+                //check if name is entered, if not then ask user to enter info
                 if (projectNameInput)
                 {
                     return true;
@@ -106,12 +114,14 @@ const promptProject= portfolioData =>
             }
         },
         
+        //description of the project
         {
             type: 'input',
             name: 'description',
             message: 'Provide a description of the project (Required)',
             validate: projectDescriptionInput =>
                 {
+                    //check if description is entered, if not then ask user to enter info
                     if (projectDescriptionInput)
                     {
                         return true;
@@ -125,6 +135,7 @@ const promptProject= portfolioData =>
                 }
         },
         
+        //languages used for the project
         {
             type: 'checkbox',
             name: 'languages',
@@ -132,12 +143,14 @@ const promptProject= portfolioData =>
             choices: ['JavaScript', 'HTML', 'CSS', 'ES6', 'jQuery', 'Bootstrap', 'Node']
         },        
         
+        //github link to the repository of the project
         {
             type: 'input',
             name: 'link',
             message: 'Enter the GitHub link to your project (Required)',
             validate: githubLinkInput =>
                 {
+                    //check if link is entered, if not then ask user to enter info
                     if (githubLinkInput)
                     {
                         return true;
@@ -151,6 +164,7 @@ const promptProject= portfolioData =>
                 }
         },
         
+        //confirmation for making the project featured
         {
             type: 'confirm',
             name: 'feature',
@@ -158,19 +172,22 @@ const promptProject= portfolioData =>
             default: false
         },
         
+        //confirmation to add additional projects
         {
             type: 'confirm',
             name: 'confirmAddProject',
-            message: 'Would you like to enter anouther project?',
+            message: 'Would you like to enter another project?',
             default: false
         }
 
     ]).then(projectData => 
         {
+            //save answers to array
             portfolioData.projects.push(projectData);
             
             if (projectData.confirmAddProject)
             {
+                //do another prompt if user wants to add more projects
                 return promptProject(portfolioData);
             }
             
@@ -181,55 +198,56 @@ const promptProject= portfolioData =>
         });
 };
 
+//function call
 promptUser()
     .then(promptProject)
-    .then(portfolioData => 
+    .then(portfolioData =>
         {
+            return generatePage(portfolioData);
+        })
+    .then(pageHTML => 
+        {
+            return writeFile(pageHTML);
+        })
+    .then(writeFileResponse =>
+        {
+            console.log(writeFileResponse);
+            return copyFile();
+        })
+    .then(copyFileResponse =>
+        {
+            console.log(copyFileResponse);
+        })
+    .catch(err =>
+        {
+            console.log(err);
+        });
+        
+        //below was commited out to make code more readable
+        /*{
             //console.log(portfolioData);
 
             const pageHTML= generatePage(portfolioData);
             
-            fs.writeFile('./index.html', pageHTML, err => 
+            fs.writeFile('./dist/index.html', pageHTML, err => 
             {
-                if (err) throw new Error(err);
+                if (err) 
+                {
+                    console.log(err);
+                    return;
+                }
 
-                //console.log('Portfolio complete! Check out index.html to see the output!');
+                //console.log('Page created! Check out index.html in this directory to see it!');
             });
-        });
 
+            fs.copyFile('./src/style.css', './dist/style.css', err =>
+            {
+                if (err)
+                {
+                    console.log(err);
+                    return;
+                }
+                console.log('Style sheet copied successfully!');
+            });
+        });*/
 
-/*
-//const profileDataArgs= process.argv.slice(2);
-//const [name, github]= profileDataArgs;
-const pageHTML= generatePage(name, github);
-
-
-fs.writeFile('./index.html', pageHTML, err => 
-{
-    if (err) throw new Error(err);
-
-    console.log('Portfolio complete! Check out index.html to see the output!');
-});*/
-
-
-//console.log(name, github);
-//console.log(genetatePage(name, github)); 
-/*{console.log(profileDataArgs);}
-
-// Notice the lack of parentheses around the `profileDataArr` parameter?
-const printProfileData= profileDataArr => 
-{
-    // This...
-    for (let i= 0;i < profileDataArr.length; i++)
-    {
-        console.log(profileDataArr[i]);
-    }
-
-    console.log('================');
-
-    // Is the same as this...
-    profileDataArr.forEach(profileItem=> console.log(profileItem));
-    
-};
-
-printProfileData(profileDataArgs);*/
